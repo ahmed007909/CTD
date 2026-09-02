@@ -1,0 +1,44 @@
+# Dependencies (root and all sub-packages)
+node_modules/
+**/node_modules/
+
+# Environment variables (do not push credentials/secrets)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build and compiled output
+dist/
+build/
+**/dist/
+**/build/
+
+# Logs
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Prisma
+**/prisma/migrations/dev.db
+
+# IDE configuration
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Testing & Coverage
+coverage/
+**/coverage/
+
+# Misc
+*.tsbuildinfo

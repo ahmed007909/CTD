@@ -1,0 +1,214 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// ENUMS
+// ----------------------------------------------------
+
+enum Role {
+  officer
+  investigator
+  sho
+  admin
+}
+
+enum GroupMemberRole {
+  member
+  admin
+}
+
+enum MessageType {
+  text
+  image
+  video
+  voice
+  file
+}
+
+enum CallType {
+  voice
+  video
+}
+
+enum CallStatus {
+  missed
+  completed
+  rejected
+  ongoing
+}
+
+enum ChatType {
+  direct
+  group
+}
+
+// ----------------------------------------------------
+// AUTH / CORE MODELS
+// ----------------------------------------------------
+
+model User {
+  id           String      @id @default(uuid())
+  username     String      @unique
+  cnic         String      @unique
+  phone        String      @unique
+  passwordHash String
+  fullName     String
+  role         Role        @default(officer)
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  designation  String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  lastLoginAt  DateTime?
+
+  // Relations
+  createdGroups       Group[]              @relation("GroupCreator")
+  groupMemberships    GroupMember[]
+  sentMessages        Message[]            @relation("SentMessages")
+  receivedMessages    Message[]            @relation("ReceivedMessages")
+  initiatedCalls      Call[]               @relation("InitiatedCalls")
+  receivedCalls       Call[]               @relation("ReceivedCalls")
+  callParticipants    CallParticipant[]
+  chatPreferences     UserChatPreference[]
+  messageReadStatuses MessageReadStatus[]
+
+  @@map("users")
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  // Relations
+  users User[]
+
+  @@map("departments")
+}
+
+// ----------------------------------------------------
+// PRIVATE CHAT MODELS
+// ----------------------------------------------------
+
+model Group {
+  id        String   @id @default(uuid())
+  groupName String
+  createdBy String
+  creator   User     @relation("GroupCreator", fields: [createdBy], references: [id])
+  createdAt DateTime @default(now())
+
+  // Relations
+  members  GroupMember[]
+  messages Message[]
+  calls    Call[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id          String          @id @default(uuid())
+  groupId     String
+  group       Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleInGroup GroupMemberRole @default(member)
+  joinedAt    DateTime        @default(now())
+
+  @@unique([groupId, userId])
+  @@map("group_members")
+}
+
+model Message {
+  id            String      @id @default(uuid())
+  matrixEventId String      @unique
+  senderId      String
+  sender        User        @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId    String?
+  receiver      User?       @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  groupId       String?
+  group         Group?      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  messageType   MessageType
+  content       String?
+  mediaUrl      String?
+  mediaDuration Int?
+  mediaSize     Int?
+  replyToId     String?
+  replyTo       Message?    @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies       Message[]   @relation("MessageReplies")
+  isDeleted     Boolean     @default(false)
+  sentAt        DateTime    @default(now())
+  editedAt      DateTime?
+
+  // Relations
+  readStatuses MessageReadStatus[]
+
+  @@map("messages")
+}
+
+model Call {
+  id          String     @id @default(uuid())
+  initiatedBy String
+  caller      User       @relation("InitiatedCalls", fields: [initiatedBy], references: [id])
+  receiverId  String?
+  receiver    User?      @relation("ReceivedCalls", fields: [receiverId], references: [id])
+  groupId     String?
+  group       Group?     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  callType    CallType
+  startedAt   DateTime   @default(now())
+  endedAt     DateTime?
+  status      CallStatus
+
+  // Relations
+  participants CallParticipant[]
+
+  @@map("calls")
+}
+
+model CallParticipant {
+  id       String    @id @default(uuid())
+  callId   String
+  call     Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime?
+  leftAt   DateTime?
+
+  @@map("call_participants")
+}
+
+model UserChatPreference {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatType    ChatType
+  targetId    String
+  isFavourite Boolean  @default(false)
+  isPinned    Boolean  @default(false)
+  isMuted     Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, chatType, targetId])
+  @@map("user_chat_preferences")
+}
+
+model MessageReadStatus {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatType          ChatType
+  targetId          String
+  lastReadMessageId String?
+  lastReadMessage   Message? @relation(fields: [lastReadMessageId], references: [id])
+  lastReadAt        DateTime @default(now())
+
+  @@unique([userId, chatType, targetId])
+  @@map("message_read_statuses")
+}

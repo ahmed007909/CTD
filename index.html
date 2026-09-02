@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>CTD Chat Socket Test Client</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    max-width: 780px;
+    margin: 30px auto;
+    padding: 0 16px;
+    color: #1a1a1a;
+  }
+  h2 { margin-bottom: 8px; }
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .presets {
+    background: #f0f4f8;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+  .presets h4 { margin: 0 0 8px 0; color: #0969da; }
+  .btn-preset {
+    background: #ffffff;
+    border: 1px solid #0969da;
+    color: #0969da;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    margin-right: 8px;
+    margin-bottom: 6px;
+  }
+  .btn-preset:hover {
+    background: #0969da;
+    color: #ffffff;
+  }
+  .form-section {
+    margin-bottom: 15px;
+  }
+  input, select, button {
+    padding: 8px 12px;
+    margin: 4px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  input { width: 360px; }
+  button.primary {
+    background: #2da44e;
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.primary:hover { background: #2c974b; }
+  #log {
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    padding: 12px;
+    height: 320px;
+    overflow-y: auto;
+    background: #f6f8fa;
+    font-family: monospace;
+    font-size: 13px;
+  }
+  .msg { padding: 4px 0; border-bottom: 1px solid #eaecef; }
+  .system { color: #57606a; font-style: italic; }
+  .error { color: #cf222e; font-weight: bold; }
+  .chat-msg { color: #1f2328; }
+</style>
+</head>
+<body>
+
+<h2>CTD Chat Socket Test Client</h2>
+
+<div class="presets">
+  <h4>Quick Test Presets (Requires running <code>npm run seed</code> first):</h4>
+  <div>
+    <button class="btn-preset" onclick="fillPreset(1)">Login as Officer Ahmed</button>
+    <button class="btn-preset" onclick="fillPreset(2)">Login as Investigator Ali</button>
+    <button class="btn-preset" onclick="fillPreset('group')">Set Group Chat (CTD QRU)</button>
+  </div>
+  <small style="color: #656d76; display: block; margin-top: 6px;">
+    User 1: <code>00000000-0000-0000-0000-000000000001</code> | 
+    User 2: <code>00000000-0000-0000-0000-000000000002</code> | 
+    Group: <code>00000000-0000-0000-0000-000000000010</code>
+  </small>
+</div>
+
+<div class="form-section">
+  <label><strong>My User ID:</strong><br />
+    <input id="myId" placeholder="Enter valid UUID from database (e.g. User 1)" />
+  </label>
+  <button class="primary" onclick="connectSocket()">Connect Socket</button>
+  <span id="status" class="badge" style="background:#ffebe9; color:#cf222e; margin-left:10px;">Disconnected</span>
+</div>
+
+<hr style="border: none; border-top: 1px solid #d0d7de; margin: 15px 0;" />
+
+<div class="form-section">
+  <label><strong>Chat Type:</strong>
+    <select id="chatType">
+      <option value="direct">direct</option>
+      <option value="group">group</option>
+    </select>
+  </label>
+  <br />
+  <label><strong>Target ID (receiverId / groupId):</strong><br />
+    <input id="targetId" placeholder="Receiver UUID or Group UUID" />
+  </label>
+  <button onclick="joinRoom()">Join Room</button>
+</div>
+
+<hr style="border: none; border-top: 1px solid #d0d7de; margin: 15px 0;" />
+
+<div class="form-section">
+  <input id="messageInput" placeholder="Type a message..." style="width: 500px;" onkeydown="if(event.key==='Enter') sendMessage()" />
+  <button class="primary" onclick="sendMessage()">Send Message</button>
+</div>
+
+<h3>Realtime Event Log</h3>
+<div id="log"></div>
+
+<!-- socket.io-client CDN -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  let socket = null;
+  const USER_1 = '00000000-0000-0000-0000-000000000001';
+  const USER_2 = '00000000-0000-0000-0000-000000000002';
+  const GROUP_ID = '00000000-0000-0000-0000-000000000010';
+
+  function fillPreset(type) {
+    if (type === 1) {
+      document.getElementById('myId').value = USER_1;
+      document.getElementById('chatType').value = 'direct';
+      document.getElementById('targetId').value = USER_2;
+    } else if (type === 2) {
+      document.getElementById('myId').value = USER_2;
+      document.getElementById('chatType').value = 'direct';
+      document.getElementById('targetId').value = USER_1;
+    } else if (type === 'group') {
+      document.getElementById('chatType').value = 'group';
+      document.getElementById('targetId').value = GROUP_ID;
+    }
+  }
+
+  function log(text, cls = '') {
+    const div = document.getElementById('log');
+    const p = document.createElement('div');
+    p.className = 'msg ' + cls;
+    p.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+    div.appendChild(p);
+    div.scrollTop = div.scrollHeight;
+  }
+
+  function connectSocket() {
+    const myId = document.getElementById('myId').value.trim();
+    if (!myId) return alert('Please enter your user ID first');
+
+    if (socket) {
+      socket.disconnect();
+    }
+
+    socket = io('http://localhost:3000/chat', {
+      query: { userId: myId },
+    });
+
+    socket.on('connect', () => {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = 'Connected';
+      statusEl.style.background = '#dafbe1';
+      statusEl.style.color = '#1a7f37';
+      log(`Connected as ${myId}`, 'system');
+    });
+
+    socket.on('disconnect', () => {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = 'Disconnected';
+      statusEl.style.background = '#ffebe9';
+      statusEl.style.color = '#cf222e';
+      log('Disconnected from WebSocket', 'system');
+    });
+
+    socket.on('user_online', (data) => log(`🟢 User online: ${data.userId}`, 'system'));
+    socket.on('user_offline', (data) => log(`🔴 User offline: ${data.userId}`, 'system'));
+    socket.on('joined_room', (data) => log(`✅ Joined room: ${data.roomName}`, 'system'));
+
+    socket.on('new_message', (msg) => {
+      const sender = (msg.sender && msg.sender.fullName) ? `${msg.sender.fullName} (${msg.senderId})` : msg.senderId;
+      log(`💬 [${sender}]: ${msg.content || ''}`, 'chat-msg');
+    });
+
+    socket.on('user_typing', (data) => log(`✍️ ${data.userId} is typing...`, 'system'));
+
+    socket.on('chat_error', (err) => {
+      log(`❌ Error: ${err.message}`, 'error');
+    });
+
+    socket.on('connect_error', (err) => {
+      log(`❌ Connection Error: ${err.message}`, 'error');
+    });
+  }
+
+  function joinRoom() {
+    if (!socket) return alert('Connect to socket first');
+    const chatType = document.getElementById('chatType').value;
+    const targetId = document.getElementById('targetId').value.trim();
+    if (!targetId) return alert('Enter target ID');
+
+    socket.emit('join_room', { chatType, targetId });
+  }
+
+  function sendMessage() {
+    if (!socket) return alert('Connect to socket first');
+    const myId = document.getElementById('myId').value.trim();
+    const chatType = document.getElementById('chatType').value;
+    const targetId = document.getElementById('targetId').value.trim();
+    const message = document.getElementById('messageInput').value.trim();
+
+    if (!targetId || !message) return alert('Target ID and message required');
+
+    const payload = {
+      senderId: myId,
+      messageType: 'text',
+      content: message,
+    };
+
+    if (chatType === 'group') {
+      payload.groupId = targetId;
+    } else {
+      payload.receiverId = targetId;
+    }
+
+    socket.emit('send_message', payload);
+    document.getElementById('messageInput').value = '';
+  }
+</script>
+
+</body>
+</html>

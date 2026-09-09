@@ -3,6 +3,7 @@ import { AppConfigModule } from './config/config.module';
 import { GatewaysModule } from './gateways/gateways.module';
 import { UsersModule } from './modules/users/users.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
 import { AppController } from './app.controller';
 
 // Upcoming modules (uncomment when implemented):
@@ -21,6 +22,7 @@ import { AppController } from './app.controller';
     GatewaysModule,
     UsersModule,
     ChatModule,
+    ContactsModule,
     // Upcoming modules:
     // AdminAuthModule,
     // DepartmentsModule,

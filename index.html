@@ -106,6 +106,28 @@
 
 <hr style="border: none; border-top: 1px solid #d0d7de; margin: 15px 0;" />
 
+<!-- CONTACT MANAGEMENT SECTION -->
+<div class="form-section" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px;">
+  <h4 style="margin: 0 0 10px 0; color: #1e293b;">📇 Add New Contact</h4>
+  <div style="margin-bottom: 8px;">
+    <input id="contactPhone" placeholder="Phone Number (e.g. +923002222222)" style="width: 240px;" />
+    <input id="contactCustomName" placeholder="Specific Name / Nickname (e.g. Ali Bhai)" style="width: 240px;" />
+    <button class="primary" onclick="addNewContact()">+ Add Contact</button>
+    <button onclick="loadMyContacts()">View My Contacts</button>
+  </div>
+  <div>
+    <button class="btn-preset" onclick="fillContactPreset('registered')">Fill Registered (+923002222222)</button>
+    <button class="btn-preset" onclick="fillContactPreset('unregistered')">Fill Unregistered (+923009999999)</button>
+  </div>
+  <div id="contactFeedback" style="margin-top: 10px; display: none; padding: 10px; border-radius: 6px; font-size: 13px;"></div>
+  <div id="contactsListContainer" style="margin-top: 10px; display: none;">
+    <h5 style="margin: 6px 0;">My Saved Contacts:</h5>
+    <div id="contactsList" style="max-height: 140px; overflow-y: auto; font-size: 13px;"></div>
+  </div>
+</div>
+
+<hr style="border: none; border-top: 1px solid #d0d7de; margin: 15px 0;" />
+
 <div class="form-section">
   <label><strong>Chat Type:</strong>
     <select id="chatType">
@@ -242,6 +264,97 @@
 
     socket.emit('send_message', payload);
     document.getElementById('messageInput').value = '';
+  }
+
+  function fillContactPreset(type) {
+    if (type === 'registered') {
+      document.getElementById('contactPhone').value = '+923002222222';
+      document.getElementById('contactCustomName').value = 'Investigator Ali (Preset)';
+    } else {
+      document.getElementById('contactPhone').value = '+923009999999';
+      document.getElementById('contactCustomName').value = 'New Informer (Unregistered)';
+    }
+  }
+
+  async function addNewContact() {
+    const myId = document.getElementById('myId').value.trim();
+    if (!myId) return alert('Please set or fill "My User ID" first');
+    const phone = document.getElementById('contactPhone').value.trim();
+    const customName = document.getElementById('contactCustomName').value.trim();
+    if (!phone || !customName) return alert('Please enter both phone number and specific name');
+
+    const feedback = document.getElementById('contactFeedback');
+    feedback.style.display = 'block';
+    feedback.style.background = '#f1f5f9';
+    feedback.style.color = '#334155';
+    feedback.innerHTML = 'Checking backend database...';
+
+    try {
+      const res = await fetch('http://localhost:3000/contacts/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': myId },
+        body: JSON.stringify({ userId: myId, phone, customName }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        feedback.style.background = '#ffebe9';
+        feedback.style.color = '#cf222e';
+        feedback.innerHTML = `❌ Error: ${data.message || 'Failed to add contact'}`;
+        log(`❌ Add Contact Error: ${data.message || 'Failed'}`, 'error');
+        return;
+      }
+
+      if (data.isRegistered) {
+        feedback.style.background = '#dafbe1';
+        feedback.style.color = '#1a7f37';
+        feedback.innerHTML = `✅ <strong>User Found in DB!</strong> Contact saved as <em>"${data.contact.customName}"</em> (Official: ${data.contact.contactUser?.fullName || 'User'}). <button onclick="startChatWith('${data.contact.contactId}', '${data.contact.customName}')" style="margin-left: 8px; padding: 2px 8px; font-size: 12px; cursor: pointer;">Start Chat</button>`;
+        log(`📇 Contact Saved: "${data.contact.customName}" (${data.contact.phone})`, 'system');
+      } else {
+        feedback.style.background = '#fff8c5';
+        feedback.style.color = '#9a6700';
+        feedback.innerHTML = `⚠️ <strong>User NOT in DB!</strong> ${data.message}<br/><strong>Invite Link:</strong> <a href="${data.inviteLink}" target="_blank">${data.inviteLink}</a> <button onclick="navigator.clipboard.writeText('${data.inviteLink}'); alert('Invite link copied!');" style="margin-left: 6px; padding: 2px 6px; font-size: 11px;">Copy Link</button>`;
+        log(`📩 Invite Generated for ${data.phone}: ${data.inviteLink}`, 'system');
+      }
+      loadMyContacts();
+    } catch (err) {
+      feedback.style.background = '#ffebe9';
+      feedback.style.color = '#cf222e';
+      feedback.innerHTML = `❌ Network Error: ${err.message}. Make sure NestJS backend is running.`;
+    }
+  }
+
+  function startChatWith(contactUserId, name) {
+    document.getElementById('chatType').value = 'direct';
+    document.getElementById('targetId').value = contactUserId;
+    joinRoom();
+    log(`Selected chat with contact: ${name} (${contactUserId})`, 'system');
+  }
+
+  async function loadMyContacts() {
+    const myId = document.getElementById('myId').value.trim();
+    if (!myId) return alert('Please enter "My User ID" to view your contacts');
+    const container = document.getElementById('contactsListContainer');
+    const list = document.getElementById('contactsList');
+
+    try {
+      const res = await fetch(`http://localhost:3000/contacts/${myId}`);
+      if (!res.ok) throw new Error('Failed to fetch contacts');
+      const contacts = await res.json();
+      container.style.display = 'block';
+      if (!contacts.length) {
+        list.innerHTML = '<em>No contacts saved yet.</em>';
+        return;
+      }
+      list.innerHTML = contacts.map(c => `
+        <div style="padding: 4px 0; border-bottom: 1px dotted #ccc; display: flex; justify-content: space-between; align-items: center;">
+          <span><strong>${c.customName}</strong> (${c.phone}) ${c.contactUser ? `<span style="color: #64748b;">[${c.contactUser.fullName}]</span>` : ''}</span>
+          ${c.contactId ? `<button onclick="startChatWith('${c.contactId}', '${c.customName}')" style="padding: 2px 6px; font-size: 11px;">Chat</button>` : ''}
+        </div>
+      `).join('');
+    } catch (err) {
+      list.innerHTML = `<span style="color: red;">Error: ${err.message}</span>`;
+    }
   }
 </script>
 

@@ -79,6 +79,8 @@ model User {
   callParticipants    CallParticipant[]
   chatPreferences     UserChatPreference[]
   messageReadStatuses MessageReadStatus[]
+  contacts    Contact[] @relation("UserContacts")
+  savedBy     Contact[] @relation("SavedAsContact")
 
   @@map("users")
 }
@@ -212,3 +214,29 @@ model MessageReadStatus {
   @@unique([userId, chatType, targetId])
   @@map("message_read_statuses")
 }
+
+
+model Contact {
+  id          String   @id @default(uuid())
+  
+  // Jo user contact save kar raha hai
+  userId      String
+  user        User     @relation("UserContacts", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Wo user jo DB mein mila (Registered User)
+  contactId   String?
+  contactUser User?    @relation("SavedAsContact", fields: [contactId], references: [id], onDelete: Cascade)
+
+  // Current user ka diya hua custom name
+  customName  String
+  
+  // Entered phone number
+  phone       String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, phone]) // Aik user same number do dafa add na kare
+  @@map("contacts")
+}
+

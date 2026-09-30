@@ -1,0 +1,16 @@
+[
+  {"name":"CTD", "aliases":["ctd","c.t.d.","counter terrorism department","counterterrorism department","counter-terrorism department","سی ٹی ڈی","کاؤنٹر ٹیررازم ڈیپارٹمنٹ"]},
+  {"name":"DDoS", "aliases":["ddos","d.d.o.s.","distributed denial of service","distributed denial-of-service"]},
+  {"name":"DoS", "aliases":["dos","d.o.s.","denial of service","denial-of-service"], "related":["ddos","distributed denial of service"]},
+  {"name":"Cybercrime", "aliases":["cyber crime","cybercrime","cyber crimes","cybercrimes","cyber-crime","سائبر کرائم","سائبر جرائم"], "related":["online fraud","internet fraud","online scam","online scams","phishing","ransomware","identity theft","digital fraud","آن لائن فراڈ"]},
+  {"name":"Cyber", "aliases":["cyber","cybersecurity","cyber security","cyber-security","سائبر"], "related":["cybercrime","cyber crime","cyberattack","cyberattacks","cyber attack","cyber attacks","ransomware","malware","phishing","hacking","data breach","ddos","denial of service","distributed denial of service","سائبر کرائم"]},
+  {"name":"FIA", "aliases":["fia","f.i.a.","federal investigation agency","ایف آئی اے"]},
+  {"name":"NCCIA", "aliases":["nccia","national cyber crime investigation agency","national cybercrime investigation agency","این سی سی آئی اے"]},
+  {"name":"NAB", "aliases":["nab","national accountability bureau","نیب"]},
+  {"name":"FIR", "aliases":["fir","first information report","ایف آئی آر"]},
+  {"name":"PECA", "aliases":["peca","prevention of electronic crimes act","پیکا"]},
+  {"name":"Ransomware", "aliases":["ransomware","ransom ware","ransom-ware"]},
+  {"name":"Phishing", "aliases":["phishing","spear phishing","spear-phishing"]},
+  {"name":"Data breach", "aliases":["data breach","data breaches","data leak","data leaks"]},
+  {"name":"Crime", "aliases":["crime","crimes","جرم","جرائم"], "related":["arrest","arrested","arrests","suspect","suspects","accused","charged","convicted","conviction","murder","robbery","fraud","cybercrime","cyber crime","kidnapping","قتل","گرفتار","ملزم","فراڈ"]}
+]

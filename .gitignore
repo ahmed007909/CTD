@@ -40,5 +40,22 @@ Thumbs.db
 coverage/
 **/coverage/
 
+# Python
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+**/.pytest_cache/
+.ruff_cache/
+**/.ruff_cache/
+data/
+news-corroboration-engine-main/data/
+
+# Nested repositories
+CTD-Investigation-System/
+
 # Misc
 *.tsbuildinfo
+

@@ -1,0 +1,5 @@
+{
+  "high": ["bomb", "explosion", "terrorist", "attack", "hostage", "blast", "ddos", "denial of service", "denial-of-service", "ransomware", "data breach", "بم", "دھماکہ", "دھماکے", "دہشت گرد", "حملہ", "یرغمال"],
+  "medium": ["crime", "murder", "kidnapping", "robbery", "assault", "shooting", "cybercrime", "cyber crime", "cyber crimes", "phishing", "hacking", "malware", "online fraud", "identity theft", "جرم", "قتل", "اغوا", "ڈکیتی", "فائرنگ", "سائبر کرائم", "سائبر جرائم", "آن لائن فراڈ"],
+  "low": ["protest", "unrest", "riot", "احتجاج", "بدامنی", "فسادات"]
+}

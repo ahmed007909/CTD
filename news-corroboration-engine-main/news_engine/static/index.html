@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>News Corroboration Engine</title>
+  <link rel="stylesheet" href="/static/style.css?v=2">
+  <script src="/static/app.js?v=2" defer></script>
+</head>
+<body>
+  <main>
+    <header><div class="eyebrow">NEWS INTELLIGENCE · اردو + ENGLISH</div>
+      <h1>Check the coverage.<br><span>See the evidence.</span></h1>
+      <p>Search names, topics and abbreviations, or compare a claim with news coverage.</p>
+      <div class="connection"><span id="connection">Connecting to live feed…</span><span id="mode"></span></div>
+    </header>
+    <details class="access"><summary>API access</summary><label for="api-key">API key, if configured</label>
+      <input id="api-key" type="password" autocomplete="off"><button id="connect" type="button">Connect</button>
+      <small>Kept only in this page’s memory. Never included in a URL.</small></details>
+    <div class="columns">
+      <section class="panel">
+        <div class="eyebrow">01 / SEARCH &amp; CHECK</div>
+        <form id="claim-form">
+          <label for="query-mode">What would you like to do?</label>
+          <select id="query-mode"><option value="search">Search news by name or topic</option><option value="claim">Check a full claim</option></select>
+          <label for="claim">Name, topic, abbreviation, or claim</label>
+          <textarea id="claim" dir="auto" minlength="1" maxlength="3000" required placeholder="Try CTD, DoS, DDoS, cyber crime, or a person's full name…"></textarea>
+          <div id="search-options">
+            <label for="search-days">Published within</label>
+            <select id="search-days"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="365">1 year</option></select>
+            <label class="toggle"><input id="live-search" type="checkbox"> Include live Google News search</label>
+            <small>Off by default. Checking this sends your search text and related terms to Google News for this search.</small>
+            <label class="toggle"><input id="crime-only" type="checkbox"> Crime-related reporting only</label>
+            <small>A mention does not establish a person's identity, role, or guilt. Use a full name and read the source.</small>
+          </div>
+          <button id="submit" type="submit"><span id="submit-label">Search news</span> <span aria-hidden="true">↗</span></button>
+        </form>
+        <p id="error" role="alert"></p>
+        <div id="result" aria-live="polite"></div>
+        <p class="disclaimer">Search finds relevant reporting; claim checking looks for corroborating coverage. Neither establishes guilt or absolute truth. Open the sources and check their context.</p>
+      </section>
+      <section class="panel">
+        <div class="feed-heading"><div class="eyebrow">02 / LIVE NEWS</div>
+          <label class="toggle"><input id="flagged" type="checkbox"> Flagged only</label></div>
+        <p class="muted">Updates appear as publishers are polled. A keyword flag describes sensitive language, not truth or urgency.</p>
+        <div id="feed" aria-live="polite"><p class="muted">Loading recent coverage…</p></div>
+      </section>
+    </div>
+    <section class="panel sources"><div class="eyebrow">03 / SOURCE HEALTH</div><div id="sources"></div></section>
+    <details class="panel"><summary>Recent checks</summary><button id="history-button" type="button">Load history</button><div id="history"></div></details>
+    <footer>News Corroboration Engine · Design by Shabahat &amp; Nameerah · Snippets and links only</footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,8 @@
+[
+  {"id":"dawn","name":"DAWN","feed_url":"https://www.dawn.com/feeds/home","homepage":"https://www.dawn.com/","allowed_hosts":["dawn.com","www.dawn.com"],"enabled":true},
+  {"id":"ary","name":"ARY News","feed_url":"https://arynews.tv/feed/","homepage":"https://arynews.tv/","allowed_hosts":["arynews.tv","www.arynews.tv"],"enabled":true},
+  {"id":"geo","name":"Geo News","feed_url":"https://www.geo.tv/rss/1/1","homepage":"https://www.geo.tv/","allowed_hosts":["geo.tv","www.geo.tv"],"enabled":true},
+  {"id":"hum","name":"Hum News","feed_url":"https://humnews.pk/feed/","homepage":"https://humnews.pk/","allowed_hosts":["humnews.pk","www.humnews.pk"],"enabled":true},
+  {"id":"dunya","name":"Dunya News","feed_url":"https://dunyanews.tv/en/rss","homepage":"https://dunyanews.tv/","allowed_hosts":["dunyanews.tv","www.dunyanews.tv"],"enabled":true},
+  {"id":"samaa","name":"Samaa","feed_url":"https://www.samaa.tv/feed/","homepage":"https://www.samaa.tv/","allowed_hosts":["samaa.tv","www.samaa.tv"],"enabled":true}
+]
